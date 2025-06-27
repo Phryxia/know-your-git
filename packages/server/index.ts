@@ -20,14 +20,25 @@ async function main() {
   console.log('Start to gather data')
   const prs = await getPullRequestsForRepository(targetUser)
 
-  await persist()
-  console.log('Saved gathered data successfully.')
+  try {
+    await persist()
+    console.log('Caches were persisted successfully')
+  } catch (e) {
+    console.error('Fail to persist gql cache')
+    console.error(e)
+  }
 
   const diffPerRepository = await getDiffPerRepository(prs)
 
   const markdownReport = generateMarkdownReport(diffPerRepository)
-  console.log(markdownReport)
-  await saveOutput(markdownReport, `${targetUser}-git-analysis.md`)
+
+  try {
+    await saveOutput(markdownReport, `${targetUser}-git-analysis.md`)
+    console.log('Markdown report was saved successfully')
+  } catch (e) {
+    console.error('Fail to save markdown report')
+    console.error(e)
+  }
 }
 
 function checkEnvs() {

@@ -131,12 +131,11 @@ export async function getPullRequestsForRepository(
 
       const nextPeriod = getNextPeriod(remainPoint, remainTime, lastCost)
 
-      console.log(`wait for ${nextPeriod}`)
+      console.log(`wait for ${nextPeriod}ms`)
 
       if (nextPeriod) {
         await wait(nextPeriod)
       }
-      console.error(response.user.pullRequests.pageInfo.endCursor)
     }
 
     if (!response) {

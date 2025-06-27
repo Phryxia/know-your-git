@@ -5,7 +5,7 @@ export function getNextPeriod(
   remainTime: number,
   lastCost = 0,
 ) {
-  return (lastCost * remainTime) / remainPoint
+  return Math.floor((lastCost * remainTime) / remainPoint)
 }
 
 export async function wait(time: number) {

@@ -7,9 +7,9 @@ import {
 } from './services/git.ts'
 
 export async function getDiffPerRepository(prs: PullRequest[]) {
-  console.log('Cloning participated repository...')
+  console.log('Load participated repository...')
   const repoMap = await getRequiredRepositories(prs)
-  console.log('Cloning has been done successfully')
+  console.log('Repositories are loaded successfully')
 
   const repoKeys = prs.map(
     (pr) => `${pr.repository.owner}/${pr.repository.name}`,
@@ -56,14 +56,16 @@ async function getRequiredRepositories(
     ).values(),
   ]
 
+  console.log(
+    `Load following repositories:\n${uniqueRepoIds.map((id) => `  ${id}`).join('\n')}`,
+  )
+
   const repoList = await Promise.all(
     uniqueRepoIds.map((repoId) => {
       const [owner, name] = repoId.split('/')
       return getRepository(owner, name)
     }),
   )
-
-  console.log(repoList)
 
   return new Map(
     uniqueRepoIds.map((repoId, index) => [repoId, repoList[index]]),
