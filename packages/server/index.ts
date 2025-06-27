@@ -6,37 +6,17 @@ import { mergeAnalyzedDiffs } from './analyzeCounts.ts'
 import { saveOutput } from './services/file.ts'
 import type { AnalyzedDiffs } from './services/git.ts'
 
-if (!process.env.GITHUB_API_URL) {
-  throw new Error(
-    'GITHUB_API_URL is missing in .env file. Add proper public/enterprise github domain.',
-  )
-}
-
-if (!process.env.GIT_DOMAIN) {
-  throw new Error(
-    'GIT_DOMAIN is missing in .env file. Add proper git access point (ex: github.com)',
-  )
-}
-
-if (!process.env.GITHUB_AUTH_KEY) {
-  throw new Error(
-    'GITHUB_AUTH_KEY is missing in .env file. Add your private ssh key (ex: -----BEGIN OPENSSH PRIVATE KEY----- ...)',
-  )
-}
-
-if (!process.env.PAT) {
-  throw new Error(
-    'PAT is missing in .env file. Add proper github personal access token',
-  )
-}
-
-const targetUser = process.argv[2]
-
-if (!targetUser) {
-  throw new Error('usage: npm run server <user-handle>')
-}
+main()
 
 async function main() {
+  checkEnvs()
+
+  const targetUser = process.argv[2]
+
+  if (!targetUser) {
+    throw new Error('usage: npm run server <user-handle>')
+  }
+
   console.log('Start to gather data')
   const prs = await getPullRequestsForRepository(targetUser)
 
@@ -48,6 +28,27 @@ async function main() {
   const markdownReport = generateMarkdownReport(diffPerRepository)
   console.log(markdownReport)
   await saveOutput(markdownReport, `${targetUser}-git-analysis.md`)
+}
+
+function checkEnvs() {
+  return [
+    [
+      'GITHUB_API_URL',
+      'Add proper public/enterprise github domain (ex: https://https://github.com)',
+    ],
+    ['GIT_DOMAIN', 'Add proper git access point (ex: github.com)'],
+    [
+      'GITHUB_AUTH_KEY',
+      'Add your private ssh key (ex: -----BEGIN OPENSSH PRIVATE KEY----- ...)',
+    ],
+    ['PAT', 'Add proper github personal access token'],
+  ].forEach(([key, desc]) => checkEnv(key, desc))
+}
+
+function checkEnv(name: string, description: string): void {
+  if (!process.env[name]) {
+    throw new Error(`${name} is missing in .env file. ${description}`)
+  }
 }
 
 function generateMarkdownReport(
@@ -83,5 +84,3 @@ function sortCountEntries(
     return 0
   })
 }
-
-main()
