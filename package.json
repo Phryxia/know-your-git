@@ -1,0 +1,33 @@
+{
+  "name": "know-your-git",
+  "version": "0.0.1",
+  "type": "module",
+  "private": true,
+  "description": "Fetch specific user's every pull request from github and sort the diff",
+  "scripts": {
+    "server": "vite-node ./packages/server/index.ts",
+    "test": "vitest run --reporter verbose"
+  },
+  "keywords": [
+    "git",
+    "github"
+  ],
+  "author": "rayelxia",
+  "license": "MIT",
+  "dependencies": {
+    "@octokit/graphql": "^9.0.1",
+    "@urql/core": "^5.1.1",
+    "@urql/exchange-graphcache": "^7.2.3",
+    "@urql/exchange-request-policy": "^1.2.1",
+    "dotenv": "^16.5.0",
+    "es-git": "^0.4.0",
+    "octokit": "^5.0.3",
+    "typescript": "^5.8.3",
+    "vite-node": "^3.2.3"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.1",
+    "prettier": "^3.5.3",
+    "vitest": "^3.2.3"
+  }
+}
