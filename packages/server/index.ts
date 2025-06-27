@@ -3,6 +3,8 @@ import { getPullRequestsForRepository } from './getPullRequestsForUser.ts'
 import { persist } from './FileStorage.ts'
 import { getDiffPerRepository } from './getRequiredRepositories.ts'
 import { mergeAnalyzedDiffs } from './analyzeCounts.ts'
+import { saveOutput } from './services/file.ts'
+import type { AnalyzedDiffs } from './services/git.ts'
 
 if (!process.env.GITHUB_API_URL) {
   throw new Error(
@@ -34,31 +36,52 @@ if (!targetUser) {
   throw new Error('usage: npm run server <user-handle>')
 }
 
-console.log('Start to gather data')
-const prs = await getPullRequestsForRepository(targetUser)
+async function main() {
+  console.log('Start to gather data')
+  const prs = await getPullRequestsForRepository(targetUser)
 
-await persist()
-console.log('Saved gathered data successfully.')
+  await persist()
+  console.log('Saved gathered data successfully.')
 
-const diffPerRepository = await getDiffPerRepository(prs)
+  const diffPerRepository = await getDiffPerRepository(prs)
 
-for (const [repositoryName, diffs] of diffPerRepository) {
-  console.log(`# ${repositoryName}\n`)
+  const markdownReport = generateMarkdownReport(diffPerRepository)
+  console.log(markdownReport)
+  await saveOutput(markdownReport, `${targetUser}-git-analysis.md`)
+}
 
-  const countPerPath = mergeAnalyzedDiffs(diffs)
-  const countList = [...countPerPath.entries()].sort((a, b) => {
+function generateMarkdownReport(
+  diffPerRepository: Map<string, AnalyzedDiffs[]>,
+): string {
+  let markdown = ''
+
+  for (const [repositoryName, diffs] of diffPerRepository) {
+    markdown += `# ${repositoryName}\n\n`
+
+    const countPerPath = mergeAnalyzedDiffs(diffs)
+    const countList = sortCountEntries(countPerPath)
+
+    for (const [path, count] of countList) {
+      markdown += `${count}\t\t\t${path}\n`
+    }
+
+    markdown += '\n---\n\n'
+  }
+
+  return markdown
+}
+
+function sortCountEntries(
+  countPerPath: Map<string, number>,
+): [string, number][] {
+  return [...countPerPath.entries()].sort((a, b) => {
     const countDiff = b[1] - a[1]
-
     if (countDiff) return countDiff
 
     if (a[0] < b[0]) return 1
     if (a[0] > b[0]) return -1
     return 0
   })
-
-  for (const [path, count] of countList) {
-    console.log(`${count}\t\t\t${path}`)
-  }
-
-  console.log('\n---\n')
 }
+
+main()
